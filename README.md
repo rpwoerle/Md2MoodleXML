@@ -75,9 +75,7 @@ The CLI `--author` value overrides the `.env` value.
 
 This project is provided as-is, without warranty of any kind, express or implied. The developers and contributors shall not be liable for any damages, losses, or issues arising from the use of this software.
 
-## Acknowledgement
-
-This project has been developed with major support from the GitHub Copilot Agent. So use with appropriate caution.
+This project has been developed with major support from the GitHub Copilot KI Agent. Always review code and outputs and verify operation in your context before relying on the results.
 
 ## Project structure
 
