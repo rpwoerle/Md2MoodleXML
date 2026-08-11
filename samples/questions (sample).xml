@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+
+<!-- question: 103774513  -->
+  <question type="matching">
+    <name>
+      <text>Zuordnungsbeispiel</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Wähle jeweils den korrekten Begriff aus.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>4.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <shuffleanswers>true</shuffleanswers>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist richtig</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist teilweise richtig.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist falsch</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <subquestion format="html">
+      <text><![CDATA[<p>Ein Rechteck...</p>]]></text>
+      <answer>
+        <text>... hat vier rechte Winkel.</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<p>Ein Quadrat...</p>]]></text>
+      <answer>
+        <text>... hat vier gleich lange Seiten.</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text><![CDATA[<p>Ein Parallelogramm...</p>]]></text>
+      <answer>
+        <text>... hat keine Symmetrieachse.</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text></text>
+      <answer>
+        <text>... hat eine Fläche von halbe Grundlinie mal Höhe.</text>
+      </answer>
+    </subquestion>
+    <subquestion format="html">
+      <text></text>
+      <answer>
+        <text>... zeigt überhaupt keine Symmetrie.</text>
+      </answer>
+    </subquestion>
+    <createdby>
+      2491752
+    </createdby>
+  </question>
+
+<!-- question: 103774554  -->
+  <question type="cloze">
+    <name>
+      <text>Lückentextbeispiel</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Fragen zur Algebra:</p>
+<p>Ein Term besteht aus Zahlen, Rechenzeichen und einer oder mehreren {1:SHORTANSWER: ~=Variablen ~=Variable}. Terme, die mit einem "=" verbunden sind nennt man {1:SHORTANSWER: ~=Gleichungen ~=Gleichung}. Umwandlung von Gleichungen, bei denen man auf beiden Seiten die gleiche Rechenoperation durchführt nennt man eine {1:SHORTANSWER: ~=Äquivalenz}-Umwandlung</p>
+<p>Das Gesetz nachdem bei der Addition <strong><em>a+b</em></strong> das gleiche ist wie <strong><em>b+a</em></strong>, heißt {1:SHORTANSWER: ~=Kommutativgesetz}. Durch Anwendung des Distributivgesetzes wird aus a(b+c): {1:SHORTANSWER: ~=ab+ac ~=ab + ac ~=a*b+a*c  ~=a*b + a*c}.</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <createdby>
+      9705580
+    </createdby>
+  </question>
+
+<!-- question: 103643431  -->
+  <question type="multichoice">
+    <name>
+      <text>Einzelauswahl</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Wie viele Einwohner hat Hamburg ungefähr?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>1.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>abc</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist richtig.</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist teilweise richtig.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist falsch.</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>1,8 Millionen</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>2,4 Millionen</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>0,9 Millionen</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>130 Tausend</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <createdby>
+      9705580
+    </createdby>
+  </question>
+
+<!-- question: 103774534  -->
+  <question type="multichoice">
+    <name>
+      <text>Multiple-Choice Beispiel</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Welches sind Vierecke mit 4 rechten Winkeln?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>4.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>false</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>none</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist richtig</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist teilweise richtig.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist falsch</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<p>Rechteck</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<p>Quadrat</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="-33.33333" format="html">
+      <text><![CDATA[<p>Raute</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="-33.33333" format="html">
+      <text><![CDATA[<p>Drachenviereck</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="-33.33333" format="html">
+      <text><![CDATA[<p>Parallelogramm</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <createdby>
+      2491752
+    </createdby>
+  </question>
+
+<!-- question: 103774537  -->
+  <question type="numerical">
+    <name>
+      <text>Zahlenbeispiel</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Wieviel Ecken hat ein Octagon?</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>2.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="100" format="moodle_auto_format">
+      <text>8</text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+      <tolerance>0</tolerance>
+    </answer>
+    <unitgradingtype>0</unitgradingtype>
+    <unitpenalty>0.1000000</unitpenalty>
+    <showunits>3</showunits>
+    <unitsleft>0</unitsleft>
+    <createdby>
+      2491752
+    </createdby>
+  </question>
+
+</quiz>
