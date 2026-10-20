@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from mdhtml import MATH_PATTERN
+
 
 class ParseError(Exception):
     pass
@@ -14,6 +16,7 @@ class ParseError(Exception):
 class AnswerOption:
     text: str
     correct: bool = False
+    fraction: Optional[float] = None
 
 
 @dataclass
@@ -41,12 +44,25 @@ class Question:
 # Allow optional BOM and leading spaces before the header
 HEADER_RE = re.compile(r"^\ufeff?\s*#\s+Quiz\s*$", re.IGNORECASE)
 QUESTION_RE = re.compile(
-    r"^##\s*(?P<prefix>[^:]+):\s*(?:\((?P<name>[^)]+)\)\s*)?(?P<text>.*?)(?:\s*\[(?P<points>\d+(?:\.\d+)?)\])?\s*$",
+    r"^##\s*(?P<prefix>[^:]+):\s*(?:\((?P<name>[^)]+)\)\s*)?(?P<text>.*?)(?:\s*\|\|\s*(?P<title>.*?))?(?:\s*\[(?P<points>\d+(?:\.\d+)?)\])?\s*$",
     re.IGNORECASE,
 )
-OPTION_RE = re.compile(r"^\s*-\s*(?P<text>.*?)(?P<star>\s*\*)?\s*$")
-MATCH_PAIR_RE = re.compile(r"^\s*-\s*(?P<left>.*?)\s*=\s*(?P<right>.*?)\s*$")
-CLOZE_GAP_RE = re.compile(r"\{(?:(?P<pts>\d+(?:\.\d+)?):)?(?P<body>[^}]*)\}")
+OPTION_RE = re.compile(r"^-\s*(?P<text>.*?)(?P<star>\s*\*)?\s*$")
+SINGLE_OPTION_RE = re.compile(
+    r"^-\s*(?P<text>.*?)(?:\s+\[(?P<fraction>\d+(?:\.\d+)?)%\])?(?P<star>\s*\*)?\s*$"
+)
+MATCH_PAIR_RE = re.compile(r"^-\s*(?P<left>.*?)\s*=\s*(?P<right>.*?)\s*$")
+# Gaps must start with "{<points>:"; any other braces are plain text (e.g. inside $...$ math).
+# Math spans are matched first (group "math") so that braces inside them are never gaps.
+CLOZE_GAP_RE = re.compile(
+    rf"(?P<math>{MATH_PATTERN})|\{{(?P<pts>\d+(?:\.\d+)?):(?P<body>(?:{MATH_PATTERN}|[^}}])*)\}}",
+    re.DOTALL,
+)
+# Essay grader guidance: any {text} outside math.
+ESSAY_GUIDANCE_RE = re.compile(
+    rf"(?P<math>{MATH_PATTERN})|\{{(?P<body>(?:{MATH_PATTERN}|[^}}])*)\}}",
+    re.DOTALL,
+)
 IGNORED_SEGMENT_RE = re.compile(r"\[\[.*?\]\]", re.DOTALL)
 FORMULA_RE = re.compile(r"<<(.*?)>>", re.DOTALL)
 
@@ -334,7 +350,7 @@ def parse_markdown_text(text: str, source: str = "<memory>") -> List[Question]:
         if not qtype:
             raise ParseError(f"Unrecognized question type prefix '{prefix}' at line {i+1} in {source}")
         qtext = m.group("text").strip()
-        explicit_name = (m.group("name") or "").strip() or None
+        explicit_name = (m.group("title") or m.group("name") or "").strip() or None
 
         points_str = m.group("points")
         points_explicit = points_str is not None
@@ -362,14 +378,37 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
     else:
         name = explicit_name if explicit_name else abbreviate_question_name(qtext)
 
+    if qtype not in ("cloze", "essay"):
+        # Non-option lines (tables, paragraphs, "*"/"1." lists) belong to the question text.
+        extra = "\n".join(ln for ln in block if not re.match(r"^-\s", ln)).strip()
+        if extra:
+            qtext = f"{qtext}\n{extra}"
+
     if qtype == "singlechoice" or qtype == "multichoice":
         options: List[AnswerOption] = []
         for ln in block:
-            lm = OPTION_RE.match(ln)
+            lm = SINGLE_OPTION_RE.match(ln) if qtype == "singlechoice" else OPTION_RE.match(ln)
             if lm:
                 txt = lm.group("text").strip()
                 star = bool(lm.group("star"))
-                options.append(AnswerOption(text=txt, correct=star))
+                fraction = None
+                if qtype == "singlechoice" and lm.group("fraction") is not None:
+                    fraction = float(lm.group("fraction"))
+                    if fraction > 100:
+                        raise ParseError(
+                            f"Single-choice percentage must be between 0% and 100% in {source}"
+                        )
+                if qtype == "singlechoice" and star:
+                    fraction = 100.0
+                options.append(AnswerOption(text=txt, correct=star, fraction=fraction))
+        if qtype == "singlechoice" and not options:
+            raise ParseError(f"Single-choice question must have at least one option in {source}")
+        if qtype == "singlechoice" and not any(
+            option.correct or option.fraction == 100.0 for option in options
+        ):
+            raise ParseError(
+                f"Single-choice question must have at least one 100% or starred option in {source}"
+            )
         return Question(qtype=qtype, name=name, text=qtext, points=points, options=options)
 
     if qtype == "matching":
@@ -389,8 +428,10 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
         gaps: List[Gap] = []
         block_text = "\n".join(block).strip()
         for gm in CLOZE_GAP_RE.finditer(block_text):
+            if gm.group("math"):
+                continue
             pts_raw = gm.group("pts")
-            pts = float(pts_raw) if pts_raw is not None else 1.0
+            pts = float(pts_raw)
             body = gm.group("body")
             answers = [a.strip() for a in body.split("|") if a.strip()]
             if not answers:
@@ -436,11 +477,13 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
         block_text = "\n".join(block).strip()
         graderinfo = ""
         # Curly-brace segments are grader guidance; remove them from student-visible question text.
-        for gm in CLOZE_GAP_RE.finditer(block_text):
+        for gm in ESSAY_GUIDANCE_RE.finditer(block_text):
+            if gm.group("math"):
+                continue
             body = gm.group("body").strip()
             if body:
                 graderinfo = f"{graderinfo}\n{body}".strip() if graderinfo else body
-        question_text = CLOZE_GAP_RE.sub("", block_text).strip()
+        question_text = ESSAY_GUIDANCE_RE.sub(lambda m: m.group("math") or "", block_text).strip()
         return Question(qtype=qtype, name=name, text=question_text or qtext, points=points, graderinfo=graderinfo)
 
     raise ParseError(f"Unsupported question type '{qtype}' in {source}")

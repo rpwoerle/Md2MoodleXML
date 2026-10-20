@@ -13,7 +13,7 @@ Greenfield: no Python code yet. Use `samples/questions.md` and `samples/question
 - Use the question text as the XML question `<name><text>`.
 
 Details by type:
-- Single-choice: answers are `- option` with exactly ONE `*` suffix marking the correct answer → `<single>true</single>`. Correct answer gets `fraction="100"`, wrong answers get `fraction="0"`.
+- Single-choice: answers are `- option` with either a `*` suffix or a percentage suffix such as `- option [50%]` → `<single>true</single>`. A `*` means `fraction="100"`; percentage values map directly to Moodle fractions. At least one option must have `100%` or `*`.
 - Multi-choice: answers are `- option` with `*` suffix marking corrects (can be multiple) → `<single>false</single>`. Fractions: split +100% equally across correct answers; split -100% equally across all wrong answers (i.e., wrong fractions sum to -100%).
 - Matching: items as `- subquestion = answer`. Score 1 point per correct pair. Default grade = number of pairs unless an explicit `[points]` is provided.
 - Cloze: gaps like `{answer}` or `{<points>:answer1|answer2}`. If points omitted for a gap, default 1. `|` separates acceptable answers for that gap.

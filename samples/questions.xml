@@ -3,7 +3,7 @@
 
   <question type="multichoice">
     <name>
-      <text>Welche Aussagen über Energie</text>
+      <text>Eigenschaften der Energie</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[<h5>Welche Aussagen über Energie sind richtig?</h5>]]></text>
@@ -31,13 +31,13 @@
     </incorrectfeedback>
     <shownumcorrect/>
     <answer fraction="-50" format="html">
-      <text><![CDATA[<p>Energie ist eine Eigenschaft der Materie.</p>]]></text>
+      <text><![CDATA[<p><strong>Energie</strong> ist eine Eigenschaft der Materie.</p>]]></text>
       <feedback format="html">
         <text></text>
       </feedback>
     </answer>
     <answer fraction="33.3333" format="html">
-      <text><![CDATA[<p>Der Energieverbrauch der Welt steigt ständig an.</p>]]></text>
+      <text><![CDATA[<p>Der <em>Energieverbrauch</em> der Welt steigt ständig an.</p>]]></text>
       <feedback format="html">
         <text></text>
       </feedback>
@@ -66,7 +66,7 @@
   </question>
   <question type="multichoice">
     <name>
-      <text>Woher kommt die Energie auf</text>
+      <text>Energie auf der Erde</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[<h5>Woher kommt die Energie auf der Erde?</h5>]]></text>
@@ -129,7 +129,7 @@
   </question>
   <question type="multichoice">
     <name>
-      <text>Welche Energieformen gibt es?</text>
+      <text>Energieformen</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[<h5>Welche Energieformen gibt es?</h5>]]></text>
@@ -157,7 +157,7 @@
     </incorrectfeedback>
     <shownumcorrect/>
     <answer fraction="33.3333" format="html">
-      <text><![CDATA[<p>Mechanische Energie</p>]]></text>
+      <text><![CDATA[<p>Mechanische Energie, z.B.</p>]]></text>
       <feedback format="html">
         <text></text>
       </feedback>
@@ -192,10 +192,18 @@
   </question>
   <question type="cloze">
     <name>
-      <text>Fülle die Lücken mit den passe</text>
+      <text>Energielückentext</text>
     </name>
     <questiontext format="html">
-      <text><![CDATA[<h5>Energie ist die Fähigkeit durch ihre Umwandlung etwas zu {1:SHORTANSWER:~=bewirken}. Energie kann von einer Form in eine andere umgewandelt werden, aber sie kann weder geschaffen noch zerstört werden, was als {2:SHORTANSWER:~=Energieerhaltungsgesetz~=Gesetz der Energieerhaltung~=Energieerhaltung} bekannt ist. Beispiel: Bei einem Skater in der Halfpipe wird die {1:SHORTANSWER:~=potenzielle Energie~=Lageenergie~=Höhenenergie} am höchsten Punkt in {1:SHORTANSWER:~=kinetische Energie} umgewandelt, wenn er nach unten fährt. Auf der anderen Seite erreicht er nicht mehr die gleiche Höhe, weil ein Teil der Energie durch {1:SHORTANSWER:~=Reibung} in {1:SHORTANSWER:~=Wärmeenergie~=thermische Energie} umgewandelt wird.</h5>]]></text>
+      <text><![CDATA[<p>Energie ist die Fähigkeit durch ihre Umwandlung etwas zu {1:SHORTANSWER:~=bewirken}. Energie kann von einer Form in eine andere umgewandelt werden, aber sie kann weder geschaffen noch zerstört werden, was als {2:SHORTANSWER:~=Energieerhaltungsgesetz~=Gesetz der Energieerhaltung~=Energieerhaltung} bekannt ist. Beispiel: Bei einem Skater in der Halfpipe wird die {1:SHORTANSWER:~=potenzielle Energie~=Lageenergie~=Höhenenergie} am höchsten Punkt in {1:SHORTANSWER:~=kinetische Energie} umgewandelt, wenn er nach unten fährt. Auf der anderen Seite erreicht er nicht mehr die gleiche Höhe, weil ein Teil der Energie durch {1:SHORTANSWER:~=Reibung} in {1:SHORTANSWER:~=Wärmeenergie~=thermische Energie} umgewandelt wird.</p>
+<table border="1">
+<thead><tr><th>Energieform</th><th>Formel</th></tr></thead>
+<tbody>
+<tr><td>kin. Energie</td><td>\(E=\frac{1}{2}mv^2\)</td></tr>
+</tbody>
+</table>
+<ul><li>Höhenenergie</li><li>Spannenergie</li><li>chem. Energie</li></ul>
+<ol><li>Das ist</li><li>eine Nummerierung</li><li>oder?</li></ol>]]></text>
     </questiontext>
     <generalfeedback format="html">
       <text></text>
@@ -209,7 +217,7 @@
   </question>
   <question type="multichoice">
     <name>
-      <text>Was sind Energiewandler?</text>
+      <text>Energiewandler</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[<h5>Was sind Energiewandler?</h5>]]></text>
@@ -272,7 +280,7 @@
   </question>
   <question type="matching">
     <name>
-      <text>Ordne die hauptsächlichen</text>
+      <text>Energieformen</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[<h5>Ordne die hauptsächlichen Energieformen den Beispielen zu.</h5>]]></text>
@@ -331,7 +339,7 @@
   </question>
   <question type="essay">
     <name>
-      <text>Vergleiche zwei Skater im Weg-Zeit-Diagramm.</text>
+      <text>Skater im Vergleich</text>
     </name>
     <questiontext format="html">
       <text><![CDATA[<p>Bestimme aus der folgenden Wertetabelle die konstanten Geschwindigkeiten zweier Skater und erkläre, wie sich der Unterschied im Weg-Zeit-Diagramm zeigt: Skater Rot legt in 1 s: 1,8 m; in 2 s: 3,6 m; in 3 s: 5,4 m zurück. Skater Grün legt in 1 s: 2,4 m; in 2 s: 4,8 m; in 3 s: 7,2 m zurück. Berechne v_rot und v_grün in m/s und begründe knapp, welche Linie im Weg-Zeit-Diagramm steiler wäre und warum.</p>]]></text>
@@ -358,6 +366,68 @@
     <responsetemplate format="html">
       <text></text>
     </responsetemplate>
+    <createdby>
+      Ralph Pieper-Wörle (supported by AI APIs)
+    </createdby>
+  </question>
+  <question type="multichoice">
+    <name>
+      <text>Computerverwendung</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<h5>Wie oft nutzt du einen Computer/Laptop zuhause (nicht Smartphone/Tablet)?</h5>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text></text>
+    </generalfeedback>
+    <defaultgrade>4.0000000</defaultgrade>
+    <penalty>0.3333333</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <single>true</single>
+    <shuffleanswers>true</shuffleanswers>
+    <answernumbering>none</answernumbering>
+    <showstandardinstruction>1</showstandardinstruction>
+    <correctfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist richtig</p>]]></text>
+    </correctfeedback>
+    <partiallycorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist teilweise richtig.</p>]]></text>
+    </partiallycorrectfeedback>
+    <incorrectfeedback format="html">
+      <text><![CDATA[<p>Die Antwort ist falsch</p>]]></text>
+    </incorrectfeedback>
+    <shownumcorrect/>
+    <answer fraction="0" format="html">
+      <text><![CDATA[<p>Wir haben gar keinen.</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="25" format="html">
+      <text><![CDATA[<p>Fast nie.</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="50" format="html">
+      <text><![CDATA[<p>Manchmal für Hausaufgaben</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Mehrmals pro Woche</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
+    <answer fraction="100" format="html">
+      <text><![CDATA[<p>Jeden Tag</p>]]></text>
+      <feedback format="html">
+        <text></text>
+      </feedback>
+    </answer>
     <createdby>
       Ralph Pieper-Wörle (supported by AI APIs)
     </createdby>

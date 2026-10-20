@@ -1,19 +1,37 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from html import escape
 from typing import List
 
-from parser import Question, AnswerOption, Gap
+from mdhtml import block_html, inline_html
+from parser import Question, AnswerOption, Gap, CLOZE_GAP_RE
 
 
 def html_cdata(p: str) -> str:
-    return f"<![CDATA[<p>{escape(p)}</p>]]>"
+    return f"<![CDATA[<p>{inline_html(p)}</p>]]>"
+
+
+def block_cdata(p: str) -> str:
+    return f"<![CDATA[{block_html(p)}]]>"
 
 
 def question_cdata(p: str) -> str:
-    """Wrap question text specifically in an H5 header within CDATA."""
-    return f"<![CDATA[<h5>{escape(p)}</h5>]]>"
+    """Wrap the first line in an H5 header within CDATA; further lines become block HTML."""
+    head, _, rest = p.partition("\n")
+    html = f"<h5>{inline_html(head)}</h5>"
+    if rest.strip():
+        html += "\n" + block_html(rest)
+    return f"<![CDATA[{html}]]>"
+
+
+def cloze_cdata(p: str) -> str:
+    html = block_html(p)
+    single = re.fullmatch(r"<p>((?:(?!</p>).)*)</p>", html, re.DOTALL)
+    if single:
+        html = f"<h5>{single.group(1)}</h5>"
+    return f"<![CDATA[{html}]]>"
 
 
 def quiz_header() -> str:
@@ -42,10 +60,11 @@ def default_blocks(defaultgrade: float) -> str:
     )
 
 
-def wrap_question_text(text: str) -> str:
+def wrap_question_text(text: str, cloze: bool = False) -> str:
+    cdata = cloze_cdata(text) if cloze else question_cdata(text)
     return (
         "    <questiontext format=\"html\">\n"
-        f"      <text>{question_cdata(text)}</text>\n"
+        f"      <text>{cdata}</text>\n"
         "    </questiontext>\n"
     )
 
@@ -81,10 +100,6 @@ def render_name(name: str) -> str:
 
 
 def render_singlechoice(q: Question, author: str) -> str:
-    # Single-choice: exactly one correct answer, <single>true</single>, fraction="100" for correct, "0" for wrong
-    corrects = [o for o in q.options if o.correct]
-    wrongs = [o for o in q.options if not o.correct]
-
     parts = ["  <question type=\"multichoice\">\n"]
     parts.append(render_name(q.name))
     parts.append(wrap_question_text(q.text))
@@ -96,9 +111,9 @@ def render_singlechoice(q: Question, author: str) -> str:
     parts.append(empty_feedback_blocks())
 
     for o in q.options:
-        frac = 100 if o.correct else 0
+        frac = o.fraction if o.fraction is not None else (100 if o.correct else 0)
         parts.append(
-            f"    <answer fraction=\"{frac}\" format=\"html\">\n      <text>{html_cdata(o.text)}</text>\n      <feedback format=\"html\">\n        <text></text>\n      </feedback>\n    </answer>\n"
+            f"    <answer fraction=\"{frac:g}\" format=\"html\">\n      <text>{html_cdata(o.text)}</text>\n      <feedback format=\"html\">\n        <text></text>\n      </feedback>\n    </answer>\n"
         )
 
     parts.append(
@@ -169,24 +184,22 @@ def render_matching(q: Question, author: str) -> str:
 
 def render_cloze(q: Question, author: str) -> str:
     # Convert gaps in q.text from {<point>:<answer1>|<answer2>} to {<point>:SHORTANSWER:~=<answer1>~=<answer2>}
-    # If no <point> prefix, default to 1: {SHORTANSWER:...} -> {1:SHORTANSWER:...}
-    import re
     def cloze_gap_repl(match):
+        if match.group('math'):
+            return match.group(0)
         pts = match.group('pts')
         body = match.group('body')
         answers = [a.strip() for a in body.split('|') if a.strip()]
         if not answers:
             return match.group(0)
         ans_str = '~=' + '~='.join(answers)
-        pts_str = pts if pts is not None else '1'
-        return f'{{{pts_str}:SHORTANSWER:{ans_str}}}'
+        return f'{{{pts}:SHORTANSWER:{ans_str}}}'
 
-    CLOZE_GAP_RE = re.compile(r'\{(?:(?P<pts>\d+(?:\.\d+)?):)?(?P<body>[^}]*)\}')
     cloze_text = CLOZE_GAP_RE.sub(cloze_gap_repl, q.text)
 
     parts = ["  <question type=\"cloze\">\n"]
     parts.append(render_name(q.name))
-    parts.append(wrap_question_text(cloze_text))
+    parts.append(wrap_question_text(cloze_text, cloze=True))
     # Cloze in samples omit <defaultgrade>, leave penalty/hidden/idnumber
     parts.append("    <generalfeedback format=\"html\">\n      <text></text>\n    </generalfeedback>\n")
     parts.append("    <penalty>0.3333333</penalty>\n")
@@ -259,7 +272,7 @@ def render_essay(q: Question, author: str) -> str:
     parts.append(render_name(q.name))
     parts.append(
         "    <questiontext format=\"html\">\n"
-        f"      <text>{html_cdata(q.text)}</text>\n"
+        f"      <text>{block_cdata(q.text)}</text>\n"
         "    </questiontext>\n"
     )
     parts.append("    <generalfeedback format=\"html\">\n      <text></text>\n    </generalfeedback>\n")
@@ -278,7 +291,7 @@ def render_essay(q: Question, author: str) -> str:
     parts.append("    <filetypeslist></filetypeslist>\n")
     parts.append(
         "    <graderinfo format=\"html\">\n"
-        f"      <text>{html_cdata(q.graderinfo)}</text>\n"
+        f"      <text>{block_cdata(q.graderinfo)}</text>\n"
         "    </graderinfo>\n"
     )
     parts.append("    <responsetemplate format=\"html\">\n      <text></text>\n    </responsetemplate>\n")
