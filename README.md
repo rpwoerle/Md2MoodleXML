@@ -1,6 +1,15 @@
 # Md2MoodleXML
-
 CLI that converts Markdown quiz files into Moodle XML for import.
+
+## What's new
+
+- Questions can have an optional Moodle name using `|| <question title>`; without one, a shortened question-text name is used.
+- Single-choice answers support percentage fractions, for example `- option [50%]`.
+- Multi-choice options support explicit percentages; all options must specify a percentage and positive percentages must total 100%.
+- Matching questions support distractor answers with an empty left side, such as `= distractor`.
+- new AI-Text questions as essay questions supporting a separate AI grading prompt and marking scheme (see blow).
+- new Drag-Drop-Image questions supporting image-based matching with draggable labels and configurable drop areas (see blow).
+- Markdown conversion now documents support for math, formatting, links, tables, lists, code, and headings, with escaping rules for other text.
 
 ## Requirements
 
@@ -47,14 +56,27 @@ The question title is optional. If omitted, Moodle uses an abbreviated version o
 - `Short Answer`
 - `Numerical`
 - `Essay`
+- `AI-Text`
+- `Drag-Drop-Image`
 
 ### Type-specific syntax
 
-- Single-choice: use `- option` lines. Mark the full-credit answer with `*`, or assign each option a percentage such as `- option [50%]`; at least one option must be marked `*` or `[100%]`.
-- Multi-choice: use `- option` lines and mark one or more answers with `*`
-- Matching: use lines like `- left side = right side`
+- Single-choice: use `- option` lines. Mark the full-credit answer with `*`, or assign each option a percentage such as `- option [50%]`; at least one option must be marked `*` or `[100%]`. The percentage option allows for poll like or scale-based questions 
+  
+  Example: How did you like the topic? 
+  - not so much [25%]
+  - was ok [50%]
+  - was good [75%]
+  - great, loved it [100%]
+
+  with 4 points max for this question, you get scaled answers (1-4, bad to good)
+
+- Multi-choice: use `- option` lines and mark one or more answers with `*`. Alternatively, assign a percentage to every option, such as `- option [60%]` and `- another option [40%]`; positive percentages must total 100%, and negative percentages can specify penalties. Do not mix `*` with percentage values.; **Note** when using the `*` (star) option: Max points will be evenly divided between the starred answers. All others will get evenly divided negative 100% (change in moodle, if this is too strict, or use percentages instead)
+- Matching: use lines like `- left side = right side`; an empty left side can be written as `= right side` and will add  distractors (choices that are not to be used) 
 - Cloze: gaps must start with the points, e.g. `{1:answer}` or `{2:answer1|answer2}`; other braces are plain text (e.g. inside `$...$` math)
 - Essay: place the student-visible prompt in the body and optional grading guidance in `{...}` (braces inside math are ignored)
+- AI-Text: essay style free answer with AI evaluation. Place the model-solution/expectation (AI grading prompt) below the question heading and an additional instruction on how to handle errors or missing points (markscheme) in `{...}` (braces inside math are ignored). See sample.md
+- Drag-Drop-Image: add `image = "image.png"`, `dropcount = 2`, and `dragtext = First label;Second label` lines below the heading. The image must be beside the Markdown file. Drop areas are numbered with their coordinates set to `0`; draggable labels are numbered in assigned to the drop areas in the order they appear. Additional draggables as distractors are allowed, but must be added at the end of the `dragtext` list. **Note**: you must distribute the drop areas to the correct location on the image whithin moodle. Otherwise this question will not work!
 
 Answer options, matching pairs and similar lines must start with `-` in the **first column**. Indented dashes are regular Markdown bullets (see below).
 
@@ -77,7 +99,7 @@ Question text, answers and grader info are converted to simple HTML. For Cloze a
 | blank line | new `<p>` paragraph |
 | single newline inside a paragraph | `<br>` |
 
-Notes:
+#### Notes:
 
 - `$` is only treated as math when the opening `$` is followed by non-whitespace, the closing `$` is preceded by non-whitespace and is not followed by a digit, so `costs $5 or $6` stays plain text. Make sure each formula has a closing `$`.
 - A dash inside a line (`text - more text`) is ordinary text.
@@ -86,7 +108,7 @@ Notes:
 
 ## Output
 
-- Writes `<basename>.xml` next to the source Markdown file, or into the chosen output folder
+- Writes `<basename>.xml` next to the source Markdown file, or into the chosen output folder. Use the moodle question import function.
 - Writes UTF-8 XML
 - Only processes Markdown files that start with `# Quiz`
 - Logs each handled file as `[run]`, `[done]`, or `[fail]`

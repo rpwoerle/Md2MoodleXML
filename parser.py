@@ -27,7 +27,7 @@ class Gap:
 
 @dataclass
 class Question:
-    qtype: str  # "multichoice", "matching", "cloze", "truefalse", "shortanswer", "numerical", "essay"
+    qtype: str  # Question type identifier used by the Moodle XML generator
     name: str
     text: str
     points: float
@@ -39,6 +39,12 @@ class Question:
     short_answers: List[str] = field(default_factory=list)  # shortanswer acceptable answers
     numerical_answer: Optional[str] = None  # numerical string representation
     graderinfo: str = ""  # essay grader guidance
+    aiprompt: str = ""  # aitext grading prompt
+    markscheme: str = ""  # aitext markscheme
+    image_name: Optional[str] = None  # ddimageortext image filename
+    image_data: Optional[bytes] = None  # ddimageortext image content
+    drop_count: int = 0  # ddimageortext number of drop areas
+    drag_texts: List[str] = field(default_factory=list)  # ddimageortext draggable labels
 
 
 # Allow optional BOM and leading spaces before the header
@@ -51,7 +57,12 @@ OPTION_RE = re.compile(r"^-\s*(?P<text>.*?)(?P<star>\s*\*)?\s*$")
 SINGLE_OPTION_RE = re.compile(
     r"^-\s*(?P<text>.*?)(?:\s+\[(?P<fraction>\d+(?:\.\d+)?)%\])?(?P<star>\s*\*)?\s*$"
 )
-MATCH_PAIR_RE = re.compile(r"^-\s*(?P<left>.*?)\s*=\s*(?P<right>.*?)\s*$")
+MULTI_OPTION_RE = re.compile(
+    r"^-\s*(?P<text>.*?)(?:\s*\[(?P<fraction>-?\d+(?:\.\d+)?)%\])?(?P<star>\s*\*)?\s*$"
+)
+MATCH_PAIR_RE = re.compile(
+    r"^(?:-\s*(?P<left>.*?)|(?P<bare_left>))\s*=\s*(?P<right>.*?)\s*$"
+)
 # Gaps must start with "{<points>:"; any other braces are plain text (e.g. inside $...$ math).
 # Math spans are matched first (group "math") so that braces inside them are never gaps.
 CLOZE_GAP_RE = re.compile(
@@ -163,7 +174,13 @@ PREFIX_MAP = {
     "true/false": "truefalse",
     "short answer": "shortanswer",
     "numerical": "numerical",
+    "ai-text": "aitext",
+    "ai text": "aitext",
+    "aitext": "aitext",
     "essay": "essay",
+    "drag-drop-image": "ddimageortext",
+    "drag drop image": "ddimageortext",
+    "ddimageortext": "ddimageortext",
 }
 
 
@@ -378,16 +395,88 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
     else:
         name = explicit_name if explicit_name else abbreviate_question_name(qtext)
 
+    if qtype == "ddimageortext":
+        attributes: dict[str, str] = {}
+        for line in block:
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lower()
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+                value = value[1:-1]
+            if key in ("image", "dropcount", "dragtext"):
+                attributes[key] = value
+
+        image_name = attributes.get("image", "").strip()
+        if not image_name:
+            raise ParseError(f"Drag-Drop-Image question must specify image = <filename> in {source}")
+        try:
+            drop_count = int(attributes.get("dropcount", ""))
+        except ValueError as exc:
+            raise ParseError(f"Drag-Drop-Image question must specify a positive dropcount in {source}") from exc
+        if drop_count < 1:
+            raise ParseError(f"Drag-Drop-Image question must specify a positive dropcount in {source}")
+
+        drag_texts = [text.strip() for text in attributes.get("dragtext", "").split(";")]
+        if not drag_texts or any(not text for text in drag_texts):
+            raise ParseError(f"Drag-Drop-Image question must specify non-empty dragtext values in {source}")
+
+        image_path = Path(image_name)
+        if not image_path.is_absolute():
+            image_path = Path(source).parent / image_path
+        try:
+            image_data = image_path.read_bytes()
+        except OSError as exc:
+            raise ParseError(f"Unable to read Drag-Drop-Image image '{image_name}' in {source}: {exc}") from exc
+
+        return Question(
+            qtype=qtype,
+            name=name,
+            text=qtext,
+            points=points,
+            image_name=Path(image_name).name,
+            image_data=image_data,
+            drop_count=drop_count,
+            drag_texts=drag_texts,
+        )
+
+    if qtype == "aitext":
+        block_text = "\n".join(block).strip()
+        markschemes: List[str] = []
+        for match in ESSAY_GUIDANCE_RE.finditer(block_text):
+            if not match.group("math"):
+                markscheme = match.group("body").strip()
+                if markscheme:
+                    markschemes.append(markscheme)
+        aiprompt = ESSAY_GUIDANCE_RE.sub(
+            lambda match: match.group("math") or "", block_text
+        ).strip()
+        return Question(
+            qtype=qtype,
+            name=name,
+            text=qtext,
+            points=points,
+            aiprompt=aiprompt,
+            markscheme="\n".join(markschemes),
+        )
+
     if qtype not in ("cloze", "essay"):
         # Non-option lines (tables, paragraphs, "*"/"1." lists) belong to the question text.
-        extra = "\n".join(ln for ln in block if not re.match(r"^-\s", ln)).strip()
+        extra = "\n".join(
+            ln
+            for ln in block
+            if not re.match(r"^-\s", ln)
+            and not (qtype == "matching" and MATCH_PAIR_RE.match(ln))
+        ).strip()
         if extra:
             qtext = f"{qtext}\n{extra}"
 
     if qtype == "singlechoice" or qtype == "multichoice":
         options: List[AnswerOption] = []
+        multi_choice_percentages_used = False
         for ln in block:
-            lm = SINGLE_OPTION_RE.match(ln) if qtype == "singlechoice" else OPTION_RE.match(ln)
+            lm = SINGLE_OPTION_RE.match(ln) if qtype == "singlechoice" else MULTI_OPTION_RE.match(ln)
             if lm:
                 txt = lm.group("text").strip()
                 star = bool(lm.group("star"))
@@ -400,6 +489,13 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
                         )
                 if qtype == "singlechoice" and star:
                     fraction = 100.0
+                if qtype == "multichoice" and lm.group("fraction") is not None:
+                    fraction = float(lm.group("fraction"))
+                    multi_choice_percentages_used = True
+                    if star:
+                        raise ParseError(
+                            f"Multi-choice options cannot use both '*' and a percentage in {source}"
+                        )
                 options.append(AnswerOption(text=txt, correct=star, fraction=fraction))
         if qtype == "singlechoice" and not options:
             raise ParseError(f"Single-choice question must have at least one option in {source}")
@@ -409,6 +505,36 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
             raise ParseError(
                 f"Single-choice question must have at least one 100% or starred option in {source}"
             )
+        if qtype == "multichoice" and multi_choice_percentages_used:
+            if any(option.fraction is None for option in options):
+                raise ParseError(
+                    f"Every Multi-choice option must specify a percentage when percentage scoring is used in {source}"
+                )
+            positive_total = sum(
+                option.fraction or 0.0
+                for option in options
+                if option.fraction is not None and option.fraction > 0
+            )
+            positive_options = [
+                option
+                for option in options
+                if option.fraction is not None and option.fraction > 0
+            ]
+            if len(positive_options) == 3 and all(
+                option.fraction == 33.0 for option in positive_options
+            ):
+                for option in positive_options:
+                    option.fraction = 100.0 / 3.0
+            elif positive_total < 100.0:
+                raise ParseError(
+                    f"Positive Multi-choice percentages add up to {positive_total:g}%, "
+                    f"which is {100.0 - positive_total:g}% short of 100% in {source}"
+                )
+            elif positive_total > 100.0:
+                raise ParseError(
+                    f"Positive Multi-choice percentages add up to {positive_total:g}%, "
+                    f"which is {positive_total - 100.0:g}% over 100% in {source}"
+                )
         return Question(qtype=qtype, name=name, text=qtext, points=points, options=options)
 
     if qtype == "matching":
@@ -416,7 +542,7 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
         for ln in block:
             mm = MATCH_PAIR_RE.match(ln)
             if mm:
-                left = mm.group("left").strip()
+                left = (mm.group("left") or mm.group("bare_left") or "").strip()
                 right = mm.group("right").strip()
                 pairs.append((left, right))
         # Default grade = number of pairs if points not explicitly set

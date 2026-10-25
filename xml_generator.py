@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from base64 import b64encode
 from dataclasses import dataclass
 from html import escape
 from typing import List
@@ -88,6 +89,10 @@ def questions_to_moodle_xml(questions: List[Question], author: str) -> str:
             parts.append(render_numerical(q, author))
         elif q.qtype == "essay":
             parts.append(render_essay(q, author))
+        elif q.qtype == "aitext":
+            parts.append(render_aitext(q, author))
+        elif q.qtype == "ddimageortext":
+            parts.append(render_ddimageortext(q, author))
         else:
             # Skip unknowns defensively
             continue
@@ -143,10 +148,11 @@ def render_multichoice(q: Question, author: str) -> str:
     parts.append(empty_feedback_blocks())
 
     for o in q.options:
-        frac = pos_fraction if o.correct else neg_fraction
+        frac = o.fraction if o.fraction is not None else (pos_fraction if o.correct else neg_fraction)
+        fraction_text = f"{frac:.10g}" if o.fraction is not None else f"{frac:g}"
         parts.append(
-            "    <answer fraction=\"{0:g}\" format=\"html\">\n      <text>{1}</text>\n      <feedback format=\"html\">\n        <text></text>\n      </feedback>\n    </answer>\n".format(
-                frac, html_cdata(o.text)
+            "    <answer fraction=\"{0}\" format=\"html\">\n      <text>{1}</text>\n      <feedback format=\"html\">\n        <text></text>\n      </feedback>\n    </answer>\n".format(
+                fraction_text, html_cdata(o.text)
             )
         )
 
@@ -166,9 +172,10 @@ def render_matching(q: Question, author: str) -> str:
     parts.append(empty_feedback_blocks())
 
     for left, right in q.pairs:
+        left_text = html_cdata(left) if left else ""
         parts.append(
             "    <subquestion format=\"html\">\n"
-            f"      <text>{html_cdata(left)}</text>\n"
+            f"      <text>{left_text}</text>\n"
             "      <answer>\n"
             f"        <text>{escape(right)}</text>\n"
             "      </answer>\n"
@@ -298,5 +305,83 @@ def render_essay(q: Question, author: str) -> str:
     parts.append(
         "    <createdby>\n      " + escape(author) + "\n    </createdby>\n"
     )
+    parts.append("  </question>")
+    return "".join(parts)
+
+
+def render_aitext(q: Question, author: str) -> str:
+    parts = ['  <question type="aitext">\n']
+    parts.append(render_name(q.name))
+    parts.append(wrap_question_text(q.text))
+    parts.append("    <generalfeedback format=\"html\">\n      <text></text>\n    </generalfeedback>\n")
+    parts.append(f"    <defaultgrade>{q.points:.7f}</defaultgrade>\n")
+    parts.append("    <penalty>0.0000000</penalty>\n")
+    parts.append("    <hidden>0</hidden>\n")
+    parts.append("    <idnumber></idnumber>\n")
+    parts.append("    <responseformat>editor</responseformat>\n")
+    parts.append("    <responsefieldlines>10</responsefieldlines>\n")
+    parts.append("    <minwordlimit></minwordlimit>\n")
+    parts.append("    <maxwordlimit></maxwordlimit>\n")
+    parts.append("    <graderinfo format=\"html\">\n      <text></text>\n    </graderinfo>\n")
+    parts.append("    <responsetemplate format=\"html\">\n      <text></text>\n    </responsetemplate>\n")
+    parts.append(f"    <aiprompt>{escape(q.aiprompt, quote=False)}</aiprompt>\n")
+    parts.append(f"    <markscheme>{escape(q.markscheme, quote=False)}</markscheme>\n")
+    parts.append("    <model></model>\n")
+    parts.append("    <spellcheck>1</spellcheck>\n")
+    parts.append(
+        "    <createdby>\n      " + escape(author) + "\n    </createdby>\n"
+    )
+    parts.append("  </question>")
+    return "".join(parts)
+
+
+def render_ddimageortext(q: Question, author: str) -> str:
+    if q.image_name is None or q.image_data is None:
+        raise ValueError("Drag-Drop-Image question is missing image data")
+
+    parts = ["  <question type=\"ddimageortext\">\n"]
+    parts.append(render_name(q.name))
+    parts.append(wrap_question_text(q.text))
+    parts.append(default_blocks(q.points))
+    parts.append("    <shuffleanswers/>\n")
+    parts.append(
+        "    <correctfeedback format=\"html\">\n"
+        "      <text><![CDATA[<p>Die Antwort ist richtig.</p>]]></text>\n"
+        "    </correctfeedback>\n"
+        "    <partiallycorrectfeedback format=\"html\">\n"
+        "      <text><![CDATA[<p>Die Antwort ist teilweise richtig.</p>]]></text>\n"
+        "    </partiallycorrectfeedback>\n"
+        "    <incorrectfeedback format=\"html\">\n"
+        "      <text><![CDATA[<p>Die Antwort ist falsch.</p>]]></text>\n"
+        "    </incorrectfeedback>\n"
+        "    <shownumcorrect />\n"
+    )
+    image_data = b64encode(q.image_data).decode("ascii")
+    parts.append(
+        f"    <file name=\"{escape(q.image_name, quote=True)}\" encoding=\"base64\">"
+        f"{image_data}</file>\n"
+    )
+
+    for number, text in enumerate(q.drag_texts, start=1):
+        parts.append(
+            "    <drag>\n"
+            f"      <no>{number}</no>\n"
+            f"      <text>{escape(text)}</text>\n"
+            "      <draggroup>1</draggroup>\n"
+            "    </drag>\n"
+        )
+
+    for number in range(1, q.drop_count + 1):
+        parts.append(
+            "    <drop>\n"
+            "      <text></text>\n"
+            f"      <no>{number}</no>\n"
+            f"      <choice>{number}</choice>\n"
+            "      <xleft>0</xleft>\n"
+            "      <ytop>0</ytop>\n"
+            "    </drop>\n"
+        )
+
+    parts.append("    <createdby>\n      " + escape(author) + "\n    </createdby>\n")
     parts.append("  </question>")
     return "".join(parts)

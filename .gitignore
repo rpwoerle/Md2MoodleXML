@@ -20,7 +20,9 @@ Thumbs.db
 # Build and test artifacts
 *.log
 *.tmp
+*.egg-info/
 out/
+dist/
 
 # Project-specific local files
 runapp.cmd
