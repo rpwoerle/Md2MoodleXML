@@ -89,7 +89,8 @@ def _render_table(lines: List[str]) -> str:
 
     def cell(tag: str, idx: int, content: str) -> str:
         align = aligns[idx] if idx < len(aligns) else ""
-        attr = f' style="text-align: {align};"' if align else ""
+        style = f"text-align: {align}; padding: 5px;" if align else "padding: 5px;"
+        attr = f' style="{style}"'
         return f"<{tag}{attr}>{inline_html(content)}</{tag}>"
 
     head = "".join(cell("th", i, c) for i, c in enumerate(_split_row(lines[0])))
@@ -146,6 +147,7 @@ def block_html(text: str) -> str:
         line = lines[i]
         if not line.strip():
             flush()
+            blocks.append("<p></p>")
             i += 1
         elif FENCE_RE.match(line):
             flush()

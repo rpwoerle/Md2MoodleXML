@@ -279,7 +279,7 @@ def render_essay(q: Question, author: str) -> str:
     parts.append(render_name(q.name))
     parts.append(
         "    <questiontext format=\"html\">\n"
-        f"      <text>{block_cdata(q.text)}</text>\n"
+        f"      <text>{question_cdata(q.text)}</text>\n"
         "    </questiontext>\n"
     )
     parts.append("    <generalfeedback format=\"html\">\n      <text></text>\n    </generalfeedback>\n")

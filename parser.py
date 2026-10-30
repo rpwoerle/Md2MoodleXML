@@ -69,7 +69,7 @@ CLOZE_GAP_RE = re.compile(
     rf"(?P<math>{MATH_PATTERN})|\{{(?P<pts>\d+(?:\.\d+)?):(?P<body>(?:{MATH_PATTERN}|[^}}])*)\}}",
     re.DOTALL,
 )
-# Essay grader guidance: any {text} outside math.
+# Grading metadata blocks; braces inside math are excluded.
 ESSAY_GUIDANCE_RE = re.compile(
     rf"(?P<math>{MATH_PATTERN})|\{{(?P<body>(?:{MATH_PATTERN}|[^}}])*)\}}",
     re.DOTALL,
@@ -192,6 +192,10 @@ def normalize_prefix(pfx: str) -> Optional[str]:
 def strip_ignored_segments(text: str) -> str:
     """Remove non-content notes wrapped in [[...]] from the markdown source."""
     return IGNORED_SEGMENT_RE.sub("", text)
+
+
+def question_text_with_heading(heading: str, body: str) -> str:
+    return "\n".join(section for section in (heading.strip(), body.strip()) if section)
 
 
 def _translate_scripts(value: str, mapping: dict[str, str], wrapper: str) -> str:
@@ -443,21 +447,35 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
 
     if qtype == "aitext":
         block_text = "\n".join(block).strip()
+        aiprompts: List[str] = []
         markschemes: List[str] = []
-        for match in ESSAY_GUIDANCE_RE.finditer(block_text):
-            if not match.group("math"):
-                markscheme = match.group("body").strip()
-                if markscheme:
-                    markschemes.append(markscheme)
-        aiprompt = ESSAY_GUIDANCE_RE.sub(
-            lambda match: match.group("math") or "", block_text
-        ).strip()
+
+        def extract_ai_fields(match: re.Match[str]) -> str:
+            if match.group("math"):
+                return match.group(0)
+
+            field = re.match(
+                r"^(AI-Prompt|MarkScheme)\s*:\s*(.*)$",
+                match.group("body").strip(),
+                re.DOTALL | re.IGNORECASE,
+            )
+            if not field:
+                return match.group(0)
+
+            value = field.group(2).strip()
+            if field.group(1).lower() == "ai-prompt":
+                aiprompts.append(value)
+            else:
+                markschemes.append(value)
+            return ""
+
+        student_text = ESSAY_GUIDANCE_RE.sub(extract_ai_fields, block_text).strip()
         return Question(
             qtype=qtype,
             name=name,
-            text=qtext,
+            text=question_text_with_heading(qtext, student_text),
             points=points,
-            aiprompt=aiprompt,
+            aiprompt="\n".join(aiprompts),
             markscheme="\n".join(markschemes),
         )
 
@@ -610,7 +628,13 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
             if body:
                 graderinfo = f"{graderinfo}\n{body}".strip() if graderinfo else body
         question_text = ESSAY_GUIDANCE_RE.sub(lambda m: m.group("math") or "", block_text).strip()
-        return Question(qtype=qtype, name=name, text=question_text or qtext, points=points, graderinfo=graderinfo)
+        return Question(
+            qtype=qtype,
+            name=name,
+            text=question_text_with_heading(qtext, question_text),
+            points=points,
+            graderinfo=graderinfo,
+        )
 
     raise ParseError(f"Unsupported question type '{qtype}' in {source}")
 
