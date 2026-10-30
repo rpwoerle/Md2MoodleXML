@@ -45,6 +45,7 @@ class Question:
     image_data: Optional[bytes] = None  # ddimageortext image content
     drop_count: int = 0  # ddimageortext number of drop areas
     drag_texts: List[str] = field(default_factory=list)  # ddimageortext draggable labels
+    question_title: str = ""
 
 
 # Allow optional BOM and leading spaces before the header
@@ -585,7 +586,14 @@ def parse_block(qtype: str, qtext: str, points: float, block: List[str], source:
         if not points_explicit and gaps:
             points = float(sum(g.points for g in gaps))
         # For Cloze, use the block text (which contains the gaps) as the question text
-        return Question(qtype=qtype, name=name, text=block_text or qtext, points=points, gaps=gaps)
+        return Question(
+            qtype=qtype,
+            name=name,
+            text=block_text,
+            points=points,
+            question_title=qtext,
+            gaps=gaps,
+        )
 
     if qtype == "truefalse":
         # Expect one option line: - True* or - False*

@@ -145,5 +145,46 @@ class EssayAITextTests(unittest.TestCase):
         self.assertEqual(question.findtext("markscheme"), "")
 
 
+class ClozeTitleTests(unittest.TestCase):
+    def test_sample_title_and_name_render_as_heading_and_name(self) -> None:
+        sample_path = Path(__file__).parents[1] / "samples" / "questions.md"
+        questions = parse_markdown_text(
+            sample_path.read_text(encoding="utf-8"),
+            source=str(sample_path),
+        )
+        xml = ET.fromstring(questions_to_moodle_xml(questions, author="test"))
+        question = xml.find("question[@type='cloze']")
+
+        self.assertIsNotNone(question)
+        assert question is not None
+        self.assertEqual(question.findtext("name/text"), "Energielückentext")
+        self.assertTrue(
+            (question.findtext("questiontext/text") or "").startswith(
+                "<h5>Fülle die Lücken im folgenden Text mit den korrekten Begriffen aus.</h5>\n"
+                "<p>Energie ist die Fähigkeit"
+            )
+        )
+
+    def test_title_and_name_render_as_heading_and_name(self) -> None:
+        questions = parse_markdown_text(
+            "# Quiz\n"
+            "## Cloze: Fill in the missing word.||Energy quiz\n"
+            "Energy can be {1:converted}.\n"
+        )
+
+        question = ET.fromstring(
+            questions_to_moodle_xml(questions, author="test")
+        ).find("question")
+
+        self.assertIsNotNone(question)
+        assert question is not None
+        self.assertEqual(question.findtext("name/text"), "Energy quiz")
+        self.assertEqual(
+            question.findtext("questiontext/text"),
+            "<h5>Fill in the missing word.</h5>\n"
+            "<p>Energy can be {1:SHORTANSWER:~=converted}.</p>",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

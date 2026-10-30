@@ -84,22 +84,22 @@ The question title is optional. If omitted, Moodle uses an abbreviated version o
 Question text, answers and grader info are converted to simple HTML. For Cloze and Essay questions the whole body is converted; for the other types, any non-option lines below the heading (paragraphs, tables, ordered lists, unordered lists) are appended to the question text.
 
 
-| Markdown                                                   | HTML / Moodle output                                                  |
-| ---------------------------------------------------------- | --------------------------------------------------------------------- |
-| `$x^2$`                                                    | `\(x^2\)` (inline math)                                               |
-| `$$x^2$$`                                                  | `\[x^2\]` (display math)                                              |
-| `<<x^2>>`                                                  | `\(x^2\)` (legacy formula syntax, with sub/superscript normalization) |
-| `**bold**`, `*italic*`, `_italic_`, `~~strike~~`           | `<strong>`, `<em>`, `<del>`                                           |
-| `` `code` `` and fenced ```` ``` ```` blocks               | `<code>`, `<pre><code>`                                               |
-| `[text](url)`                                              | `<a href>`                                                            |
-| `| a | b |` tables (with `---` separator, `:-:` alignment) | `<table>` with 5px cell padding                                       |
-| indented`- item`, `* item`, `+ item`                       | `<ul><li>` (nested by indentation)                                    |
-| `1. item`                                                  | `<ol><li>`                                                            |
-| `# Heading` inside a body                                  | `<h1>`…`<h6>`                                                        |
-| blank line                                                 | new`<p>` paragraph                                                    |
-| single newline inside a paragraph                          | `<br>`                                                                |
+| Markdown                                         | HTML / Moodle output                                                  |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `$x^2$`                                          | `\(x^2\)` (inline math)                                               |
+| `$$x^2$$`                                        | `\[x^2\]` (display math)                                              |
+| `<<x^2>>`                                        | `\(x^2\)` (legacy formula syntax, with sub/superscript normalization) |
+| `**bold**`, `*italic*`, `_italic_`, `~~strike~~` | `<strong>`, `<em>`, `<del>`                                           |
+| `` `code` `` and fenced ```` ``` ```` blocks     | `<code>`, `<pre><code>`                                               |
+| `[text](url)`                                    | `<a href>`                                                            |
+| `                                                | a                                                                     |
+| indented`- item`, `* item`, `+ item`             | `<ul><li>` (nested by indentation)                                    |
+| `1. item`                                        | `<ol><li>`                                                            |
+| `# Heading` inside a body                        | `<h1>`…`<h6>`                                                        |
+| blank line                                       | new`<p>` paragraph                                                    |
+| single newline inside a paragraph                | `<br>`                                                                |
 
-#### Notes:
+### Notes:
 
 - `$` is only treated as math when the opening `$` is followed by non-whitespace, the closing `$` is preceded by non-whitespace and is not followed by a digit, so `costs $5 or $6` stays plain text. Make sure each formula has a closing `$`.
 - Answer options, matching pairs and similar lines must start with `-` in the **first column**. Indented dashes are treated as regular Markdown bullets and convertedto unordered HTML lists.

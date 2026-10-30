@@ -27,7 +27,14 @@ def question_cdata(p: str) -> str:
     return f"<![CDATA[{html}]]>"
 
 
-def cloze_cdata(p: str) -> str:
+def cloze_cdata(p: str, title: str = "") -> str:
+    if title:
+        html = f"<h5>{inline_html(title)}</h5>"
+        body = block_html(p)
+        if body:
+            html += "\n" + body
+        return f"<![CDATA[{html}]]>"
+
     html = block_html(p)
     single = re.fullmatch(r"<p>((?:(?!</p>).)*)</p>", html, re.DOTALL)
     if single:
@@ -61,8 +68,8 @@ def default_blocks(defaultgrade: float) -> str:
     )
 
 
-def wrap_question_text(text: str, cloze: bool = False) -> str:
-    cdata = cloze_cdata(text) if cloze else question_cdata(text)
+def wrap_question_text(text: str, cloze: bool = False, title: str = "") -> str:
+    cdata = cloze_cdata(text, title) if cloze else question_cdata(text)
     return (
         "    <questiontext format=\"html\">\n"
         f"      <text>{cdata}</text>\n"
@@ -206,7 +213,7 @@ def render_cloze(q: Question, author: str) -> str:
 
     parts = ["  <question type=\"cloze\">\n"]
     parts.append(render_name(q.name))
-    parts.append(wrap_question_text(cloze_text, cloze=True))
+    parts.append(wrap_question_text(cloze_text, cloze=True, title=q.question_title))
     # Cloze in samples omit <defaultgrade>, leave penalty/hidden/idnumber
     parts.append("    <generalfeedback format=\"html\">\n      <text></text>\n    </generalfeedback>\n")
     parts.append("    <penalty>0.3333333</penalty>\n")
